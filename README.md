@@ -27,14 +27,6 @@ Add dependency to the `dependencies` section:
   <version>4.0.0</version>
 </dependency>
 ```
-Additionally if you want to serialize/deserialize [supported bukkit objects](https://github.com/OkaeriPoland/okaeri-configs/tree/master/serdes-bukkit):
-```xml
-<dependency>
-  <groupId>eu.okaeri</groupId>
-  <artifactId>okaeri-hjson</artifactId>
-  <version>4.0.0</version>
-</dependency>
-```
 ### Gradle
 Add repository to the `repositories` section:
 ```groovy
@@ -42,7 +34,7 @@ maven { url "https://storehouse.okaeri.eu/repository/maven-public/" }
 ```
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-configs-yaml-bukkit:2.6.3'
+implementation 'eu.okaeri:okaeri-hjson:4.0.0'
 ```
 
 ## Usage
