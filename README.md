@@ -39,5 +39,6 @@ implementation 'eu.okaeri:okaeri-hjson:4.0.0'
 
 ## Usage
 
-Main goal at the moment is to provide stable library for hjson module of Okaeri's config library.
-See usage in the [OkaeriPoland/okaeri-configs](https://github.com/OkaeriPoland/okaeri-configs/tree/master/hjson) project or browse the source projects.
+Main goal at the moment is to provide stable library for [hjson module of Okaeri's config library](https://github.com/OkaeriPoland/okaeri-configs/tree/master/hjson).
+See usage in the [okaeri-configs](https://github.com/OkaeriPoland/okaeri-configs) project or browse the source projects
+([PearsonTheCat/hjson-java](https://github.com/PersonTheCat/hjson-java), [hjson/hjson-java](https://github.com/hjson/hjson-java)).
