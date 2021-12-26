@@ -46,7 +46,7 @@ class JsonWriter {
     switch (value.getType()) {
       case OBJECT:
         JsonObject obj=value.asObject();
-        if (obj.size()>0) nl(tw, level);
+        if (obj.size()>0 && level>0) nl(tw, level);
         tw.write('{');
         for (JsonObject.Member pair : obj) {
           if (following) tw.write(",");
@@ -98,7 +98,7 @@ class JsonWriter {
   static String escapeName(String name) {
     boolean needsEscape=name.length()==0;
     for(char ch : name.toCharArray()) {
-      if (HjsonParser.isWhiteSpace(ch) || ch=='{' || ch=='}' || ch=='[' || ch==']' || ch==',' || ch==':') {
+      if (HjsonParser.isWhitespace(ch) || ch=='{' || ch=='}' || ch=='[' || ch==']' || ch==',' || ch==':') {
         needsEscape=true;
         break;
       }
