@@ -4,6 +4,8 @@ import eu.okaeri.hjson.HjsonOptions;
 import eu.okaeri.hjson.JsonValue;
 import eu.okaeri.hjson.Stringify;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+
 import static java.lang.System.out;
 
 public class Main {
@@ -12,7 +14,7 @@ public class Main {
     Writer writer=new StringWriter();
     char[] buffer=new char[1024];
     try {
-      Reader reader=new BufferedReader(new InputStreamReader(is, "UTF-8"));
+      Reader reader=new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
       int n;
       while ((n=reader.read(buffer))!=-1) writer.write(buffer, 0, n);
     } finally {
@@ -26,6 +28,7 @@ public class Main {
     if (res==null) throw new Exception(file+" not found!");
     String text=convertStreamToString(res);
     String std=text.replace("\r", ""); // make sure we have unix style text regardless of the input
+    if (std.endsWith("\n")) std=std.substring(0, std.length()-1); // clip off empty lines at the end of the input
     return cr ? std.replace("\n", "\r\n") : std;
   }
 

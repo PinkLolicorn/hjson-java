@@ -27,6 +27,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,20 +73,28 @@ public abstract class JsonValue implements Serializable {
   /**
    * A flag indicating whether this value has been specifically called for.
    */
-  protected boolean accessed;
+  protected boolean accessed=false;
 
   /**
-   * Gets the newline charater(s).
+   * Indicates the number of empty lines above this value.
+   */
+  protected int numLines=0;
+
+  /**
+   * Gets the newline character(s).
    *
    * @return the eol value
    */
+  @Deprecated
   public static String getEol() { return eol; }
 
   /**
-   * Sets the newline charater(s).
+   * Sets the newline character(s).
    *
+   * @deprecated Use {@link HjsonOptions#setNewLine}
    * @param value the eol value
    */
+  @Deprecated
   public static void setEol(String value) {
     if (value.equals("\r\n") || value.equals("\n")) eol=value;
   }
@@ -270,14 +279,18 @@ public abstract class JsonValue implements Serializable {
    * @param value the value to get a JSON representation for
    * @return a new JsonValue.
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public static JsonValue valueOf(Object value) {
-    if (value instanceof Number) {
+    if (value==null) {
+      return JsonLiteral.jsonNull();
+    } else if (value instanceof Number) {
       return new JsonNumber(((Number) value).doubleValue());
     } else if (value instanceof String) {
       return new JsonString((String) value);
     } else if (value instanceof Boolean) {
       return (Boolean) value ? JsonLiteral.jsonTrue() : JsonLiteral.jsonFalse();
+    } else if (value instanceof Enum) {
+      return new JsonString(((Enum<?>) value).name());
     } else if (value instanceof List) {
       JsonArray array=new JsonArray();
       for (Object o : (List) value) {
@@ -285,12 +298,19 @@ public abstract class JsonValue implements Serializable {
       }
       return array;
     } else if (value instanceof Map) {
-      Set<Map.Entry> entries=((Map)value).entrySet();
       JsonObject object=new JsonObject();
+      Set<Map.Entry> entries=((Map)value).entrySet();
       for (Map.Entry entry : entries) {
         object.set(entry.getKey().toString(), valueOf(entry.getValue()));
       }
       return object;
+    } else if (value.getClass().isArray()) {
+      JsonArray array=new JsonArray();
+      int length=Array.getLength(value);
+      for (int i=0; i<length; i++) {
+        array.add(valueOf(Array.get(array, i)));
+      }
+      return array;
     } else {
       throw new UnsupportedOperationException("Unable to determine type.");
     }
@@ -393,6 +413,20 @@ public abstract class JsonValue implements Serializable {
    */
   public JsonValue setAccessed(boolean b) {
     accessed=b;
+    return this;
+  }
+
+  /**
+   * Detects the number of empty lines before this value.
+   *
+   * @return the number of empty lines
+   */
+  public int getNumLines() {
+    return numLines;
+  }
+
+  public JsonValue setNumLines(int num) {
+    numLines=num;
     return this;
   }
 
@@ -521,6 +555,34 @@ public abstract class JsonValue implements Serializable {
       case EOL: eolComment=comment; break;
       case INTERIOR: intComment=comment; break;
     }
+    return this;
+  }
+
+  /**
+   * Copies every comment from another JSON value into this value. The input value be null, but
+   * will simply be ignored, if so.
+   *
+   * @param value The JSON value being copied out of.
+   * @return this, to enable chaining
+   */
+  public JsonValue copyComments(JsonValue value) {
+    if (value!=null) {
+      this.bolComment=value.bolComment;
+      this.eolComment=value.eolComment;
+      this.intComment=value.intComment;
+    }
+    return this;
+  }
+
+  /**
+   * Removes every comment from this JSON value.
+   *
+   * @return this, to enable chaining.
+   */
+  public JsonValue clearComments() {
+    this.bolComment="";
+    this.eolComment="";
+    this.intComment="";
     return this;
   }
 
@@ -654,7 +716,7 @@ public abstract class JsonValue implements Serializable {
     switch (getType()) {
       case STRING : return (T) asString();
       case NUMBER : return (T) Double.valueOf(asDouble());
-      case OBJECT : return (T) asObject();
+      case OBJECT : return (T) asObject().asRawMap();
       case ARRAY : return (T) asArray().asRawList();
       case BOOLEAN : return (T) Boolean.valueOf(asBoolean());
       case DSF : return (T) asDsf();
@@ -778,7 +840,11 @@ public abstract class JsonValue implements Serializable {
 
   @Override
   public int hashCode() {
-    return super.hashCode();
+    int result = 1;
+    result *= 59 + (this.bolComment == null ? 43 : this.bolComment.hashCode());
+    result *= 59 + (this.eolComment == null ? 43 : this.eolComment.hashCode());
+    result *= 59 + (this.intComment == null ? 43 : this.intComment.hashCode());
+    return result;
   }
 
   static boolean isPunctuatorChar(int c) {
